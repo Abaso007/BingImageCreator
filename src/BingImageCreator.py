@@ -131,29 +131,18 @@ class ImageGen:
                 if self.debug_file:
                     self.debug(f"ERROR: {error_noresults}")
                 raise Exception(error_noresults)
-            if not response.text or response.text.find("errorMessage") != -1:
-                time.sleep(1)
-                continue
-            else:
+            if response.text and response.text.find("errorMessage") == -1:
                 break
+            time.sleep(1)
+            continue
         # Use regex to search for src=""
         image_links = regex.findall(r'src="([^"]+)"', response.text)
         # Remove size limit
         normal_image_links = [link.split("?w=")[0] for link in image_links]
-        # Remove duplicates
-        normal_image_links = list(set(normal_image_links))
-
-        # bad_images = [
-        #     "https://r.bing.com/rp/in-2zU3AJUdkgFe7ZKv19yPBHVs.png",
-        #     "https://r.bing.com/rp/TX9QuO3WzcCJz1uaaSwQAz39Kb0.jpg",
-        # ]
-        # for img in normal_image_links:
-        #     if img in bad_images:
-        #         raise Exception("Bad images")
-        # No images
-        if not normal_image_links:
+        if normal_image_links := list(set(normal_image_links)):
+            return normal_image_links
+        else:
             raise Exception(error_no_images)
-        return normal_image_links
 
     def save_images(self, links: list, output_dir: str) -> None:
         """
